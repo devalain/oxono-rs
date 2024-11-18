@@ -70,7 +70,7 @@ impl<'g, 'ui> Widget for View<'g, 'ui> {
             .constraints(vec![
                 Constraint::Fill(1),
                 Constraint::Fill(1),
-                Constraint::Min(40),
+                Constraint::Min(30),
                 Constraint::Fill(1),
                 Constraint::Fill(1),
             ])
