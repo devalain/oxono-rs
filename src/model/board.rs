@@ -224,7 +224,7 @@ impl Board {
         enum TotemValidMovesIter<'b> {
             EmptySquares(&'b Board, usize),
             LatteralFirstEmptySquares(&'b Board, Position, usize),
-            EmptyNeighbours(&'b Board, Position, usize),
+            EmptyNeighbours(&'b Board, Position, Position, usize),
         }
         impl<'b> Iterator for TotemValidMovesIter<'b> {
             type Item = Position;
@@ -250,15 +250,24 @@ impl Board {
                             break next;
                         }
                     },
-                    TotemValidMovesIter::EmptyNeighbours(board, pos, i) => loop {
-                        let next = match *i {
-                            0 => pos.right().filter(|s| board.get(*s).is_empty()),
-                            1 => pos.up().filter(|s| board.get(*s).is_empty()),
-                            2 => pos.left().filter(|s| board.get(*s).is_empty()),
-                            3 => pos.down().filter(|s| board.get(*s).is_empty()),
-                            _ => break None,
+                    TotemValidMovesIter::EmptyNeighbours(board, pos, curr, i) => loop {
+                        let next = {
+                            let next = match *i {
+                                0 => curr.right(),
+                                1 => curr.up(),
+                                2 => curr.left(),
+                                3 => curr.down(),
+                                _ => break None,
+                            };
+                            if next.map(|p| board.get(p).is_empty()).unwrap_or_default() {
+                                *curr = next.unwrap();
+                            } else {
+                                *i += 1;
+                                *curr = *pos;
+                                continue;
+                            }
+                            Some(*curr)
                         };
-                        *i += 1;
                         if next.is_some() {
                             break next;
                         }
@@ -276,7 +285,7 @@ impl Board {
                     TotemStatus::Enclave => {
                         TotemValidMovesIter::LatteralFirstEmptySquares(board, pos, 0)
                     }
-                    TotemStatus::Free => TotemValidMovesIter::EmptyNeighbours(board, pos, 0),
+                    TotemStatus::Free => TotemValidMovesIter::EmptyNeighbours(board, pos, pos, 0),
                 }
             }
         }
