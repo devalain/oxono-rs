@@ -131,7 +131,7 @@ impl<'g, 'ui> Widget for BoardView<'g, 'ui> {
         let selected_symbol = self.1.selected_symbol();
         let selected_totem_pos = self.1.selected_totem_pos();
         Canvas::default()
-            .marker(symbols::Marker::Braille)
+            .marker(symbols::Marker::HalfBlock)
             .x_bounds([0.0, 600.0])
             .y_bounds([0.0, 600.0])
             .paint(|ctx| {
