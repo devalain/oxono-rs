@@ -141,6 +141,14 @@ impl<'g, 'ui> Widget for BoardView<'g, 'ui> {
                         let cy = (5 - y) as f64 * 100.0;
                         let pos = Position::new(x, y);
 
+                        ctx.draw(&canvas::Rectangle {
+                            x: cx,
+                            y: cy,
+                            width: 100.0,
+                            height: 100.0,
+                            color: style::Color::White,
+                        });
+
                         if Some(pos) == selected_totem_pos {
                             let cx = pos.x() as f64 * 100.0;
                             let cy = (5 - pos.y()) as f64 * 100.0;
@@ -179,7 +187,6 @@ impl<'g, 'ui> Widget for BoardView<'g, 'ui> {
                                 None => {}
                             }
                         }
-
                         match board.get(pos) {
                             Square::Totem(symbol)
                                 if Some(symbol) != selected_symbol.as_ref()
@@ -247,13 +254,6 @@ impl<'g, 'ui> Widget for BoardView<'g, 'ui> {
                             }
                             _ => {}
                         }
-                        ctx.draw(&canvas::Rectangle {
-                            x: cx,
-                            y: cy,
-                            width: 100.0,
-                            height: 100.0,
-                            color: style::Color::White,
-                        });
                     }
                 }
                 if let Some(s) = selected_symbol {
