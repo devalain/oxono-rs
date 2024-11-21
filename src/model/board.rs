@@ -296,16 +296,45 @@ impl Board {
         totem_pos: Position,
         symbol: Symbol,
     ) -> impl Iterator<Item = Position> + '_ {
+        enum Eiter<A, B> {
+            A(A),
+            B(B),
+        }
+        impl<A: Iterator<Item = Position>, B: Iterator<Item = Position>> Iterator for Eiter<A, B> {
+            type Item = Position;
+            fn next(&mut self) -> Option<Self::Item> {
+                match self {
+                    Eiter::A(a) => a.next(),
+                    Eiter::B(b) => b.next(),
+                }
+            }
+        }
         let right = totem_pos.right();
         let up = totem_pos.up();
         let left = totem_pos.left();
         let down = totem_pos.down();
-        [right, up, left, down].into_iter().filter_map(move |p| {
+        let actual_totem_pos = self.find(Square::Totem(symbol)).unwrap();
+        let usual_case = [right, up, left, down].into_iter().filter_map(move |p| {
             p.filter(|pp| {
                 let sq = self.get(*pp);
-                sq.is_empty() || matches!(sq, Square::Totem(symb) if symb == &symbol)
+                sq.is_empty() || pp == &actual_totem_pos
             })
-        })
+        });
+        let empty = self
+            .squares
+            .iter()
+            .copied()
+            .enumerate()
+            .filter_map(|(i, s)| s.is_empty().then_some(i).and_then(Self::inner_to_pos));
+        if usual_case.clone().count() == 0 {
+            Eiter::A(
+                empty
+                    .chain(core::iter::once(actual_totem_pos))
+                    .filter(move |p| *p != totem_pos),
+            )
+        } else {
+            Eiter::B(usual_case)
+        }
     }
     pub fn wins(&self, four: [Position; 4]) -> bool {
         let squares = four.iter().map(|p| self.get(*p));

@@ -61,7 +61,7 @@ impl<'g, 'ui> Widget for View<'g, 'ui> {
         let side = area.width.min(area.height);
         let min_board_side = side;
         let min_player_height = min_board_side / 6;
-        
+
         let h_layout = Layout::default()
             .direction(Direction::Horizontal)
             .constraints(vec![
@@ -157,13 +157,6 @@ impl<'g, 'ui> Widget for BoardView<'g, 'ui> {
                         if Some(pos) == selected_totem_pos {
                             let cx = pos.x() as f64 * 100.0;
                             let cy = (5 - pos.y()) as f64 * 100.0;
-                            ctx.draw(&canvas::Rectangle {
-                                x: cx,
-                                y: cy,
-                                width: 100.0,
-                                height: 100.0,
-                                color: style::Color::Green,
-                            });
                             match selected_symbol {
                                 Some(Symbol::O) => {
                                     ctx.draw(&canvas::Circle {
