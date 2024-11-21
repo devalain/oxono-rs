@@ -57,11 +57,16 @@ impl<'g, 'ui> Widget for View<'g, 'ui> {
             .title(title.centered())
             .title_bottom(instructions.centered())
             .border_set(border::THICK);
+
+        let side = area.width.min(area.height);
+        let min_board_side = side;
+        let min_player_height = min_board_side / 6;
+        
         let h_layout = Layout::default()
             .direction(Direction::Horizontal)
             .constraints(vec![
                 Constraint::Fill(1),
-                Constraint::Fill(2),
+                Constraint::Length(min_board_side),
                 Constraint::Fill(1),
             ])
             .split(block.inner(area));
@@ -69,9 +74,9 @@ impl<'g, 'ui> Widget for View<'g, 'ui> {
             .direction(Direction::Vertical)
             .constraints(vec![
                 Constraint::Fill(1),
-                Constraint::Fill(1),
-                Constraint::Min(30),
-                Constraint::Fill(1),
+                Constraint::Max(min_player_height),
+                Constraint::Length(min_board_side / 2),
+                Constraint::Max(min_player_height),
                 Constraint::Fill(1),
             ])
             .split(h_layout[1]);
