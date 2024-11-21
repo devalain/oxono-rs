@@ -51,6 +51,14 @@ impl UIState {
             MoveError::MoveApplyError(error) => format!("{error:?}"),
         })
     }
+
+    fn has_to_select_totem(&mut self) -> Option<&mut Position> {
+        if self.selected_symbol.is_none() && self.selected_totem_pos.is_none() {
+            self.selected_pos.as_mut()
+        } else {
+            None
+        }
+    }
 }
 
 #[derive(Default)]
@@ -73,7 +81,7 @@ impl Controller {
                         continue;
                     }
                     let Some(pos) = self.ui.selected_pos else {
-                        self.ui.selected_pos = Some(Position::new(0, 0));
+                        self.ui.selected_pos = self.game.board().find(Square::Totem(Symbol::O));
                         continue;
                     };
                     let builder_1 = self.game.moves_builder();
@@ -113,39 +121,63 @@ impl Controller {
                     }
                 }
                 UserMessage::Right => {
-                    if let Some(pos) = self.ui.selected_pos.as_mut() {
+                    if let Some(pos) = self.ui.has_to_select_totem() {
+                        if let &Square::Totem(s) = self.game.board().get(*pos) {
+                            if let Some(new) = self.game.board().find(Square::Totem(s.opposite())) {
+                                *pos = new;
+                            }
+                        }
+                    } else if let Some(pos) = self.ui.selected_pos.as_mut() {
                         if let Some(new) = pos.right() {
                             *pos = new;
                         }
                     } else {
-                        self.ui.selected_pos = Some(Position::new(0, 0));
+                        self.ui.selected_pos = self.game.board().find(Square::Totem(Symbol::X));
                     }
                 }
                 UserMessage::Up => {
-                    if let Some(pos) = self.ui.selected_pos.as_mut() {
+                    if let Some(pos) = self.ui.has_to_select_totem() {
+                        if let &Square::Totem(s) = self.game.board().get(*pos) {
+                            if let Some(new) = self.game.board().find(Square::Totem(s.opposite())) {
+                                *pos = new;
+                            }
+                        }
+                    } else if let Some(pos) = self.ui.selected_pos.as_mut() {
                         if let Some(new) = pos.up() {
                             *pos = new;
                         }
                     } else {
-                        self.ui.selected_pos = Some(Position::new(0, 0));
+                        self.ui.selected_pos = self.game.board().find(Square::Totem(Symbol::O));
                     }
                 }
                 UserMessage::Left => {
-                    if let Some(pos) = self.ui.selected_pos.as_mut() {
+                    if let Some(pos) = self.ui.has_to_select_totem() {
+                        if let &Square::Totem(s) = self.game.board().get(*pos) {
+                            if let Some(new) = self.game.board().find(Square::Totem(s.opposite())) {
+                                *pos = new;
+                            }
+                        }
+                    } else if let Some(pos) = self.ui.selected_pos.as_mut() {
                         if let Some(new) = pos.left() {
                             *pos = new;
                         }
                     } else {
-                        self.ui.selected_pos = Some(Position::new(0, 0));
+                        self.ui.selected_pos = self.game.board().find(Square::Totem(Symbol::X));
                     }
                 }
                 UserMessage::Down => {
-                    if let Some(pos) = self.ui.selected_pos.as_mut() {
+                    if let Some(pos) = self.ui.has_to_select_totem() {
+                        if let &Square::Totem(s) = self.game.board().get(*pos) {
+                            if let Some(new) = self.game.board().find(Square::Totem(s.opposite())) {
+                                *pos = new;
+                            }
+                        }
+                    } else if let Some(pos) = self.ui.selected_pos.as_mut() {
                         if let Some(new) = pos.down() {
                             *pos = new;
                         }
                     } else {
-                        self.ui.selected_pos = Some(Position::new(0, 0));
+                        self.ui.selected_pos = self.game.board().find(Square::Totem(Symbol::O));
                     }
                 }
                 UserMessage::None => {}
