@@ -69,7 +69,7 @@ impl Controller {
             match self.handle_events()? {
                 UserMessage::Quit => break,
                 UserMessage::Select => {
-                    if let Some(_) = self.ui.error.take() {
+                    if self.ui.error.take().is_some() {
                         continue;
                     }
                     let Some(pos) = self.ui.selected_pos else {

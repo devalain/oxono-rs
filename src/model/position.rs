@@ -109,13 +109,23 @@ impl Position {
             let mut array = [Position::new(0, 0); 4];
             match n {
                 0..6 => {
-                    for (i, p) in Position::new(n, f).iter_down().take(4).enumerate() {
+                    let first = Position::new(n, f);
+                    for (i, p) in core::iter::once(first)
+                        .chain(first.iter_down())
+                        .take(4)
+                        .enumerate()
+                    {
                         array[i] = p;
                     }
                     Some(array)
                 }
                 6..12 => {
-                    for (i, p) in Position::new(f, n - 6).iter_right().take(4).enumerate() {
+                    let first = Position::new(f, n - 6);
+                    for (i, p) in core::iter::once(first)
+                        .chain(first.iter_right())
+                        .take(4)
+                        .enumerate()
+                    {
                         array[i] = p;
                     }
                     Some(array)
@@ -123,5 +133,19 @@ impl Position {
                 _ => None,
             }
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn four_latteral_groups_works() {
+        let list = Position::four_latteral_groups().collect::<Vec<_>>();
+        assert_eq!(list.len(), 36);
+
+        let p = Position::new;
+        assert_eq!(list[0], [p(0, 0), p(0, 1), p(0, 2), p(0, 3)]);
     }
 }

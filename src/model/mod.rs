@@ -6,7 +6,7 @@ mod position;
 mod symbol;
 
 pub use {
-    board::{Board, MoveApplyError, Pieces, Square},
+    board::{Board, MoveApplyError, Square},
     color::Color,
     moves::{Moves, MovesBuilderError, MovesBuilderInit},
     player::{Player, Players},

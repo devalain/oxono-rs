@@ -305,7 +305,7 @@ impl<'g, 'ui> Widget for BoardView<'g, 'ui> {
                         y: (5 - p.y()) as f64 * 100.0,
                         width: 100.0,
                         height: 100.0,
-                        color: color,
+                        color,
                     });
                 }
             })
