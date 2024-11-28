@@ -126,6 +126,123 @@ impl<'g> Widget for PinkPiecesView<'g> {
         .render(area, buf);
     }
 }
+
+struct OxonoDrawer<'c, 'ctx>(&'ctx mut ratatui::widgets::canvas::Context<'c>);
+impl<'c, 'ctx> OxonoDrawer<'c, 'ctx>
+where
+    'c: 'ctx,
+{
+    fn draw_board_square(&mut self, pos: Position) {
+        let ctx = &mut self.0;
+        let cx = pos.x() as f64 * 100.0;
+        let cy = (5 - pos.y()) as f64 * 100.0;
+
+        ctx.draw(&canvas::Rectangle {
+            x: cx,
+            y: cy,
+            width: 100.0,
+            height: 100.0,
+            color: style::Color::White,
+        });
+    }
+    fn draw_valid_position_square(&mut self, pos: Position) {
+        let ctx = &mut self.0;
+        let cx = pos.x() as f64 * 100.0;
+        let cy = (5 - pos.y()) as f64 * 100.0;
+
+        ctx.draw(&canvas::Rectangle {
+            x: cx,
+            y: cy,
+            width: 100.0,
+            height: 100.0,
+            color: style::Color::Green,
+        });
+    }
+    fn draw_selection_square(&mut self, color: Color, pos: Position) {
+        let ctx = &mut self.0;
+        let cx = pos.x() as f64 * 100.0;
+        let cy = (5 - pos.y()) as f64 * 100.0;
+        let color = if color == Color::Pink {
+            PINK
+        } else {
+            style::Color::Black
+        };
+        ctx.draw(&canvas::Rectangle {
+            x: cx,
+            y: cy,
+            width: 100.0,
+            height: 100.0,
+            color,
+        });
+    }
+    fn draw_totem(&mut self, symbol: Symbol, pos: Position) {
+        let ctx = &mut self.0;
+        let cx = pos.x() as f64 * 100.0;
+        let cy = (5 - pos.y()) as f64 * 100.0;
+        match symbol {
+            Symbol::O => {
+                ctx.draw(&canvas::Circle {
+                    x: cx + 50.0,
+                    y: cy + 50.0,
+                    radius: 40.0,
+                    color: style::Color::Blue,
+                });
+            }
+            Symbol::X => {
+                ctx.draw(&canvas::Line {
+                    x1: cx + 20.0,
+                    y1: cy + 20.0,
+                    x2: cx + 80.0,
+                    y2: cy + 80.0,
+                    color: style::Color::Blue,
+                });
+                ctx.draw(&canvas::Line {
+                    x1: cx + 20.0,
+                    y1: cy + 80.0,
+                    x2: cx + 80.0,
+                    y2: cy + 20.0,
+                    color: style::Color::Blue,
+                });
+            }
+        }
+    }
+    fn draw_piece(&mut self, symbol: Symbol, color: Color, pos: Position) {
+        let ctx = &mut self.0;
+        let cx = pos.x() as f64 * 100.0;
+        let cy = (5 - pos.y()) as f64 * 100.0;
+        let color = match color {
+            Color::Pink => PINK,
+            Color::Black => style::Color::Black,
+        };
+        match symbol {
+            Symbol::O => {
+                ctx.draw(&canvas::Circle {
+                    x: cx + 50.0,
+                    y: cy + 50.0,
+                    radius: 40.0,
+                    color,
+                });
+            }
+            Symbol::X => {
+                ctx.draw(&canvas::Line {
+                    x1: cx + 20.0,
+                    y1: cy + 20.0,
+                    x2: cx + 80.0,
+                    y2: cy + 80.0,
+                    color,
+                });
+                ctx.draw(&canvas::Line {
+                    x1: cx + 20.0,
+                    y1: cy + 80.0,
+                    x2: cx + 80.0,
+                    y2: cy + 20.0,
+                    color,
+                });
+            }
+        }
+    }
+}
+
 struct BoardView<'g, 'ui>(&'g Game, &'ui UIState);
 impl<'g, 'ui> Widget for BoardView<'g, 'ui> {
     fn render(self, area: Rect, buf: &mut Buffer)
@@ -140,49 +257,16 @@ impl<'g, 'ui> Widget for BoardView<'g, 'ui> {
             .x_bounds([0.0, 600.0])
             .y_bounds([0.0, 600.0])
             .paint(|ctx| {
+                let mut d = OxonoDrawer(ctx);
+
                 for y in 0..6 {
                     for x in 0..6 {
-                        let cx = x as f64 * 100.0;
-                        let cy = (5 - y) as f64 * 100.0;
                         let pos = Position::new(x, y);
-
-                        ctx.draw(&canvas::Rectangle {
-                            x: cx,
-                            y: cy,
-                            width: 100.0,
-                            height: 100.0,
-                            color: style::Color::White,
-                        });
+                        d.draw_board_square(pos);
 
                         if Some(pos) == selected_totem_pos {
-                            let cx = pos.x() as f64 * 100.0;
-                            let cy = (5 - pos.y()) as f64 * 100.0;
-                            match selected_symbol {
-                                Some(Symbol::O) => {
-                                    ctx.draw(&canvas::Circle {
-                                        x: cx + 50.0,
-                                        y: cy + 50.0,
-                                        radius: 40.0,
-                                        color: style::Color::Blue,
-                                    });
-                                }
-                                Some(Symbol::X) => {
-                                    ctx.draw(&canvas::Line {
-                                        x1: cx + 20.0,
-                                        y1: cy + 20.0,
-                                        x2: cx + 80.0,
-                                        y2: cy + 80.0,
-                                        color: style::Color::Blue,
-                                    });
-                                    ctx.draw(&canvas::Line {
-                                        x1: cx + 20.0,
-                                        y1: cy + 80.0,
-                                        x2: cx + 80.0,
-                                        y2: cy + 20.0,
-                                        color: style::Color::Blue,
-                                    });
-                                }
-                                None => {}
+                            if let Some(symbol) = selected_symbol {
+                                d.draw_totem(symbol, pos);
                             }
                         }
                         match board.get(pos) {
@@ -191,64 +275,10 @@ impl<'g, 'ui> Widget for BoardView<'g, 'ui> {
                                     || selected_symbol.is_none()
                                     || selected_totem_pos.is_none() =>
                             {
-                                match symbol {
-                                    Symbol::O => {
-                                        ctx.draw(&canvas::Circle {
-                                            x: cx + 50.0,
-                                            y: cy + 50.0,
-                                            radius: 40.0,
-                                            color: style::Color::Blue,
-                                        });
-                                    }
-                                    Symbol::X => {
-                                        ctx.draw(&canvas::Line {
-                                            x1: cx + 20.0,
-                                            y1: cy + 20.0,
-                                            x2: cx + 80.0,
-                                            y2: cy + 80.0,
-                                            color: style::Color::Blue,
-                                        });
-                                        ctx.draw(&canvas::Line {
-                                            x1: cx + 20.0,
-                                            y1: cy + 80.0,
-                                            x2: cx + 80.0,
-                                            y2: cy + 20.0,
-                                            color: style::Color::Blue,
-                                        });
-                                    }
-                                }
+                                d.draw_totem(*symbol, pos);
                             }
                             Square::Piece(symbol, color) => {
-                                let color = match color {
-                                    Color::Pink => PINK,
-                                    Color::Black => style::Color::White,
-                                };
-                                match symbol {
-                                    Symbol::O => {
-                                        ctx.draw(&canvas::Circle {
-                                            x: cx + 50.0,
-                                            y: cy + 50.0,
-                                            radius: 40.0,
-                                            color,
-                                        });
-                                    }
-                                    Symbol::X => {
-                                        ctx.draw(&canvas::Line {
-                                            x1: cx + 20.0,
-                                            y1: cy + 20.0,
-                                            x2: cx + 80.0,
-                                            y2: cy + 80.0,
-                                            color,
-                                        });
-                                        ctx.draw(&canvas::Line {
-                                            x1: cx + 20.0,
-                                            y1: cy + 80.0,
-                                            x2: cx + 80.0,
-                                            y2: cy + 20.0,
-                                            color,
-                                        });
-                                    }
-                                }
+                                d.draw_piece(*symbol, *color, pos);
                             }
                             _ => {}
                         }
@@ -257,22 +287,10 @@ impl<'g, 'ui> Widget for BoardView<'g, 'ui> {
                 if let Some(s) = selected_symbol {
                     if let Some(p) = self.0.board().find(Square::Totem(s)) {
                         if selected_totem_pos.is_none() {
-                            ctx.draw(&canvas::Rectangle {
-                                x: p.x() as f64 * 100.0,
-                                y: (5 - p.y()) as f64 * 100.0,
-                                width: 100.0,
-                                height: 100.0,
-                                color: style::Color::Blue,
-                            });
                             for p in self.0.board().totem_valid_moves(p) {
-                                ctx.draw(&canvas::Rectangle {
-                                    x: p.x() as f64 * 100.0,
-                                    y: (5 - p.y()) as f64 * 100.0,
-                                    width: 100.0,
-                                    height: 100.0,
-                                    color: style::Color::Green,
-                                });
+                                d.draw_valid_position_square(p);
                             }
+                            d.draw_board_square(p);
                         }
                     }
                 }
@@ -282,31 +300,16 @@ impl<'g, 'ui> Widget for BoardView<'g, 'ui> {
                         .board()
                         .piece_valid_moves(p, selected_symbol.unwrap())
                     {
-                        ctx.draw(&canvas::Rectangle {
-                            x: p.x() as f64 * 100.0,
-                            y: (5 - p.y()) as f64 * 100.0,
-                            width: 100.0,
-                            height: 100.0,
-                            color: style::Color::Green,
-                        });
+                        d.draw_valid_position_square(p);
                     }
+                    d.draw_board_square(p);
                 }
 
                 if let Some(p) = self.1.selected_pos() {
-                    let color = if self.0.current_player().color() == Color::Pink {
-                        PINK
-                    } else {
-                        style::Color::Black
-                    };
-                    ctx.draw(&canvas::Rectangle {
-                        x: p.x() as f64 * 100.0,
-                        y: (5 - p.y()) as f64 * 100.0,
-                        width: 100.0,
-                        height: 100.0,
-                        color,
-                    });
+                    d.draw_selection_square(self.0.current_player().color(), p);
                 }
             })
+            .background_color(style::Color::LightMagenta)
             .render(area, buf);
     }
 }
